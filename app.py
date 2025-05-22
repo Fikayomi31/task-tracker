@@ -2,58 +2,44 @@ import sys
 import json
 import os
 from datetime import datetime
+import cmd
 
-# json file t save the file
-tasks_file = 'tasks.json'
+class TaskTracker(cmd.Cmd):
+    intro = 'Task Tracker CLI'
+    prompt = 'task_cli '
+    file = None
 
+    def __init__(self, tasks_file='tasks.json'):
+        super().__init__()
+        self.tasks_file = tasks_file
+        self.tasks =  self.load_tasks()
 
-def load_tasks():
-    if not os.path.exists(tasks_file):
-	return []
-    with open(tasks_file, 'r') as f:
-        return json.load(f)
+    def load_tasks(self):
+        if not os.path.exists(self.tasks_file):
+            return []
 
-def save tasks(tasks):
-    with open(tasks_file, 'w') as f:
-        json.dump(tasks, f, indent=2)
+        try:
+            with open(self.tasks_file, 'r') as file:
+                return json.load(file)
+        except json.JSONDecodeError:
+            print(f'Error: The task file ({self.tasks_file}) is corrupted.')
+            return []
 
-def generate_id(tasks):
-    return max([task['id'] for task in tasks], default=0) + 1
-
-def find_task(tasks, task_id):
-    for task in tasks:
-        if task['id'] == task_id:
-            return task
-        return None
-
-def add_task(description):
-    tasks = load_tasks()
-    task = {
-        'id': generate_id(tasks),
-        'description': decription,
-        'status': 'todo',
-        'created_at': datetime.now().isoformat(),
-        'updated_at': datetime.now().isoformat()
-    }
-    task.append(task)
-    save_task(tasks)
-
-    print(f'Task add successfully (ID: {task['id']})')
+    def save_tasks(self):
+        with open(self.tasks_file, 'w') as file:
+            json.dump(self.tasks, file, indent=2)
 
 
-def main():
-    #if len(sys.argv) < 2:
-	#show_usage()
-	#return
-    try:
-	if command == 'add':
-	    description = sys.argv[2]
-	    add_task(description)
-	else:
-	    return 
+    def do_help(self, arg):
+        cmd.Cmd.do_help(self, arg)
 
-    except (IndexError, ValueError):
-	print()
+    def do_exit(self, arg):
+        print('Goodbye')
+        return True
 
-if __name__ ==	'__main__':
-    main()
+    def do_quit(self, arg):
+        return self.do_exit(arg)
+            
+
+if __name__ == '__main__':
+    TaskTracker().cmdloop()
